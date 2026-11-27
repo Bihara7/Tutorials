@@ -1,64 +1,45 @@
 package uk.ac.westminster.products_api;
 
 import org.springframework.stereotype.Service;
+import uk.ac.westminster.products_api.repository.ProductRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductService {
 
-    private List<Product> products = new ArrayList<>();
-    private Long nextId = 1L;
+    private final ProductRepository repository;
 
-    // Constructor: add sample products
-    public ProductService() {
-
-        products.add(new DigitalProduct(
-                nextId++,
-                "Clean Code (E-book)",
-                29.99,
-                "/downloads/clean-code.pdf",
-                4.2
-        ));
-
-        products.add(new PhysicalProduct(
-                nextId++,
-                "27-inch Monitor",
-                249.99,
-                5.4,
-                "61cm x 41cm x 18cm"
-        ));
+    public ProductService(ProductRepository repository) {
+        this.repository = repository;
     }
 
     // Get all products
     public List<Product> getAllProducts() {
-        return products;
+        return repository.findAll();
     }
 
     // Add a product
     public Product addProduct(Product product) {
-        product.setId(nextId++);
-        products.add(product);
-        return product;
+        return repository.save(product);
     }
 
     // Get product by ID
-    public Optional<Product> getProductById(Long id) {
-        return products.stream()
-                .filter(product -> product.getId().equals(id))
-                .findFirst();
+    public Product getProductById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     // Delete product by ID
     public void deleteProductById(Long id) {
-        products.removeIf(product -> product.getId().equals(id));
+        getProductById(id); // throws 404 if it is not there
+        repository.delete(id);
     }
 
     // Find products by name
     public List<Product> findByName(String name) {
-        return products.stream()
+        return repository.findAll().stream()
                 .filter(product -> product.getName().contains(name))
                 .toList();
     }
@@ -66,7 +47,7 @@ public class ProductService {
 
         List<String> summaries = new ArrayList<>();
 
-        for (Product p : products) {
+        for (Product p : repository.findAll()) {
 
             summaries.add(p.getSummary());
         }
