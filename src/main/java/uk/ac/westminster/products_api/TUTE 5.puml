@@ -39,4 +39,31 @@ Product <|-- PhysicalProduct
 Discountable <|.. DigitalProduct
 Discountable <|.. PhysicalProduct
 
+class ProductController {
+    - productService : ProductService
+    + getAllProducts() : List<Product>
+}
+
+class ProductService {
+    - repository : ProductRepository
+    + getProductById(id : Long) : Product
+}
+
+interface ProductRepository {
+    + findAll() : List<Product>
+    + findById(id : Long) : Optional<Product>
+    + save(product : Product) : Product
+    + delete(id : Long) : void
+}
+
+class InMemoryProductRepository {
+    - store : Map<Long, Product>
+    - nextId : Long
+}
+
+ProductRepository <|.. InMemoryProductRepository
+
+ProductController ..> ProductService
+ProductService ..> ProductRepository
+
 @enduml
